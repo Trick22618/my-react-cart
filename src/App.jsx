@@ -6,6 +6,8 @@ import './App.css'
 import Navbar from './components/Navbar'
 import Home from './peges/Home'
 import Footer from './components/Footer'
+import LoginPage from './peges/LoginPage'
+import { checkLoginStatus, login, logout } from './services/authService'
 import {
   BrowserRouter as Router,
   Routes,
@@ -13,6 +15,25 @@ import {
 } from "react-router-dom";
 
 function App() {
+
+  const handleLogin = async(username, password) => {
+    console.log("username:", username);
+    console.log("password:", password);
+    try{
+      const data = await login(username, password); // 使用登入服務方法
+      console.log(JSON.stringify(data));
+      if(data.status === 200) {
+        //setIsLoggedIn(true); // 修改登入狀態
+        window.location.href = "/"; // 回到首頁
+        alert("登入成功");
+      } else {
+        alert("登入失敗: " + data.message);
+      }
+    } catch(e) {
+      alert(e);
+      console.error("登入錯誤:", e);
+    }
+  };
 
   return (
       <Router>
@@ -30,6 +51,7 @@ function App() {
             {/* 購物車路由 */}
 
             {/* 登入路由 */}
+            <Route path='/login' element={<LoginPage onLogin={handleLogin} />} />
 
           </Routes>          
         </div>
