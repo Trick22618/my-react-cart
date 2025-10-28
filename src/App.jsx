@@ -1,13 +1,8 @@
-// 安裝 npm install react-router-dom
+// 需安裝 npm install react-router-dom
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import Navbar from './components/Navbar'
-import Home from './peges/Home'
-import Footer from './components/Footer'
-
-
 import {
   BrowserRouter as Router,
   Routes,
@@ -15,31 +10,42 @@ import {
 } from "react-router-dom";
 
 // 登入相關 API
-import { checkLoginStatus, login, logout } from './services/authService'
+import {checkLoginStatus, login, logout} from "./services/authService";
+
+// 導航列相關模組
+import Navbar from "./components/Navbar"
+
+// 首頁相關模組
+import Home from "./pages/Home"
+
+// 頁尾相關模組
+import Footer from "./components/Footer"
 
 // 登入相關模組
-import LoginPage from './peges/LoginPage'
+import LoginPage from "./pages/LoginPage"
 
-// 商品相關服務模組
-import Products from "./peges/Products";
+// 商品相關模組
+import Products from "./pages/Products";
 
-// 購物車相關模組
-import Cart from "./peges/Cart";
+// 購物車模組
+import Cart from "./pages/Cart";
 
-// 結帳相關模組
-import Checkout from "./peges/Checkout";
+// 結帳模組
+import Checkout from "./pages/Checkout";
 
 function App() {
   // 登入狀態
-  const[isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // 定義購物中內容
+  const [cartItems, setCartItems] = useState([]);
 
   // 登入處理
   const handleLogin = async(username, password) => {
     console.log("username:", username);
     console.log("password:", password);
-    try{
+    try {
       const data = await login(username, password); // 使用登入服務方法
-      console.log(JSON.stringify(data));
+      console.log(JSON.stringify(data)); // 登入結果
       if(data.status === 200) {
         setIsLoggedIn(true); // 修改登入狀態
         //window.location.href = "/"; // 回到首頁
@@ -57,7 +63,7 @@ function App() {
 
   // 登出處理
   const handleLogout = async() => {
-    try{
+    try {
       const data = await logout();
       setIsLoggedIn(false); // 修改登入狀態
       console.log(data);
@@ -66,35 +72,61 @@ function App() {
       console.log(e);
       alert(e);
     }
-    
+    window.location.href='/'; // 回到首頁
+  };
+
+  // 加入購物車
+  const addToCart = (product) => {
+    const item = {
+      product: product,
+      qty: 1
+    }
+    console.log(item);
+    setCartItems([... cartItems, item])
+  }
+
+  // 移除購物項目
+  const removeFromCart = (indexToRemove) => {
+    //setCartItems(cartItems.filter((item, index) => index !== indexToRemove));
+    setCartItems(cartItems.filter((_, index) => index !== indexToRemove)); // 沒有用到 item 變數可以用 _ 當作佔位符號
+  };
+
+  // 清除購物車
+  const clearCart = () => {
+    setCartItems([]);
   };
 
   return (
-      <Router>
-        {/* 導航列 位於最上方 */}
-        <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+    <Router>
+      {/* 導航列-位於最上方 */}
+      <Navbar cartCount={cartItems.length} isLoggedIn={isLoggedIn} onLogout={handleLogout} />
 
-        {/* 主要內容區 位於中間部分 */}
-        <div className='content'>
-          <Routes>
-            {/* 首頁路由 */}
-            <Route path="/" element={<Home />} />
+      {/* 主要內容區-位於中間部分 */}
+      <div className='content'>
+        <Routes>
+          {/* 首頁路由 */}
+          <Route path="/" element={<Home />} />
 
-            {/* 商品路由 */}
+          {/* 商品路由 */}
+          <Route path="/products" element={<Products addToCart={addToCart} isLoggedIn={isLoggedIn} />} />
 
+          {/* 購物車路由 */}
+          <Route path="/cart" element={<Cart cartItems={cartItems} removeFromCart={removeFromCart} 
+                                             clearCart={clearCart} isLoggedIn={isLoggedIn} />} />
 
-            {/* 購物車路由 */}
+          {/* 結帳路由 */}
+          <Route path="/checkout" element={<Checkout />} />
 
-            {/* 登入路由 */}
-            <Route path='/login' element={<LoginPage onLogin={handleLogin} isLoggedIn={isLoggedIn} />} />
+          {/* 登入路由 */}
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} isLoggedIn={isLoggedIn} />} />
 
-          </Routes>          
-        </div>
+        </Routes>
+      </div>
 
-        {/* 頁尾 位於最下方 */}
-          <Footer />
+      {/* 頁尾-位於最下方 */}
+      <Footer />
 
-      </Router>
+    </Router>
   )
 }
 
