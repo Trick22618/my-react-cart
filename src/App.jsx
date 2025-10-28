@@ -6,16 +6,34 @@ import './App.css'
 import Navbar from './components/Navbar'
 import Home from './peges/Home'
 import Footer from './components/Footer'
-import LoginPage from './peges/LoginPage'
-import { checkLoginStatus, login, logout } from './services/authService'
+
+
 import {
   BrowserRouter as Router,
   Routes,
   Route,
 } from "react-router-dom";
 
-function App() {
+// 登入相關 API
+import { checkLoginStatus, login, logout } from './services/authService'
 
+// 登入相關模組
+import LoginPage from './peges/LoginPage'
+
+// 商品相關服務模組
+import Products from "./peges/Products";
+
+// 購物車相關模組
+import Cart from "./peges/Cart";
+
+// 結帳相關模組
+import Checkout from "./peges/Checkout";
+
+function App() {
+  // 登入狀態
+  const[isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // 登入處理
   const handleLogin = async(username, password) => {
     console.log("username:", username);
     console.log("password:", password);
@@ -23,22 +41,38 @@ function App() {
       const data = await login(username, password); // 使用登入服務方法
       console.log(JSON.stringify(data));
       if(data.status === 200) {
-        //setIsLoggedIn(true); // 修改登入狀態
-        window.location.href = "/"; // 回到首頁
+        setIsLoggedIn(true); // 修改登入狀態
+        //window.location.href = "/"; // 回到首頁
         alert("登入成功");
       } else {
+        setIsLoggedIn(false); // 修改登入狀態
         alert("登入失敗: " + data.message);
       }
     } catch(e) {
+      setIsLoggedIn(false); // 修改登入狀態
       alert(e);
       console.error("登入錯誤:", e);
     }
   };
 
+  // 登出處理
+  const handleLogout = async() => {
+    try{
+      const data = await logout();
+      setIsLoggedIn(false); // 修改登入狀態
+      console.log(data);
+    } catch(e) {
+      setIsLoggedIn(false); // 修改登入狀態
+      console.log(e);
+      alert(e);
+    }
+    
+  };
+
   return (
       <Router>
         {/* 導航列 位於最上方 */}
-        <Navbar />
+        <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
 
         {/* 主要內容區 位於中間部分 */}
         <div className='content'>
@@ -48,10 +82,11 @@ function App() {
 
             {/* 商品路由 */}
 
+
             {/* 購物車路由 */}
 
             {/* 登入路由 */}
-            <Route path='/login' element={<LoginPage onLogin={handleLogin} />} />
+            <Route path='/login' element={<LoginPage onLogin={handleLogin} isLoggedIn={isLoggedIn} />} />
 
           </Routes>          
         </div>
